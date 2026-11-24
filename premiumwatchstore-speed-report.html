@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Premium Watch Store speed report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: clinical lab report, conclusion first, for an owner to forward to a developer
+   IDEA: a scientific plate — each page's loading time dissected into its four parts
+   PICTURE: stacked LCP bars per page with the 2.5 s line, the budget-phone bar as the warning
+   COLOUR and TYPE: white, ink, prussian for server wait, carmine for render delay; Literata
+   LAYOUT: finding as title, the plate, then table, fixes, and per-task detail */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#0f1217);--ink:light-dark(#10131a,#e8eaee);--mute:light-dark(#5a606b,#9aa1ad);--line:light-dark(#e3e5e9,#262b33);
+--ttfb:light-dark(#0b4f8a,#5b9be0);--del:light-dark(#9db8d3,#3a5878);--load:light-dark(#d8d8d4,#555a62);--rend:light-dark(#c1121f,#ef5561);--soft:light-dark(#f6f7f9,#161a21)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Literata,Georgia,serif;overflow-x:clip}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px);max-width:1240px;margin:0 auto}
+h1{font-weight:600;font-size:clamp(28px,4.4vw,46px);line-height:1.08;text-wrap:balance;margin:0 0 14px}
+h2{font-weight:600;font-size:26px;line-height:1.15;margin:0 0 12px;text-wrap:balance}
+h3{font-size:18px;margin:22px 0 6px}
+p,li{max-width:70ch}.mute{color:var(--mute);font-size:14px}
+.nav{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;padding:10px max(5vw,16px);border-bottom:1px solid var(--line)}
+.nav a{color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:22px 0}
+.kpi{border-top:2px solid var(--ink);padding-top:8px}.kpi b{display:block;font-size:30px;line-height:1.1;white-space:nowrap}.kpi.bad b{color:var(--rend)}.kpi span{font-size:14px;color:var(--mute)}
+.plate{margin:26px 0 8px}.row{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr) 4.2em;gap:12px;align-items:center;margin:9px 0}
+.row .lab{font-size:14px;line-height:1.25}.track{position:relative;height:26px}
+.bar{display:flex;height:100%}.bar i{display:block;height:100%}
+.goal{position:absolute;top:-6px;bottom:-6px;border-left:2px dashed var(--ink);opacity:.6}
+.row .v{font-size:14px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.key{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;margin-top:10px}.key i{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px}
+table{border-collapse:collapse;width:100%;font-size:15px;margin:10px 0}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px 8px 0;text-align:left;vertical-align:top}
+th{font-weight:600;font-size:14px}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fix{background:var(--soft);padding:18px 20px;margin:14px 0;border-radius:4px}.fix h3{margin-top:0}
+code{font-size:13px;overflow-wrap:anywhere;background:var(--soft);padding:1px 4px}
+.scroll{overflow-x:auto}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mute)}.stack td:empty{display:none}
+.row{grid-template-columns:minmax(0,1fr) 4em}.row .lab{grid-column:1/-1;margin-bottom:-6px}}
+</style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head><body>
+<nav class="nav scroll"><a href="#summary">Summary</a><a href="#pages">Five pages</a><a href="#fixes">Three fixes</a><a href="#budget">Budget phone</a><a href="#blocking">Render-blocking files</a><a href="#layout">Layout &amp; buttons</a><a href="#method">Method</a></nav>
+
+<section class="band" id="summary">
+<h1>premiumwatchstore.in is quick on fast connections but takes 7.6 s to show anything on a budget Android phone</h1>
+<p>Most of the delay is the server's response time and a large stack of CSS and plugin scripts that every page loads before it can draw. Layout stability is good. The homepage is the slowest page.</p>
+<div class="kpis">
+<div class="kpi bad"><b>7.6 s</b><span>Homepage LCP on Slow 4G + 4× CPU (limit 2.5 s)</span></div>
+<div class="kpi bad"><b>29 / 100</b><span>Lighthouse score, homepage, budget phone</span></div>
+<div class="kpi"><b>296 ms</b><span>INP when tapping while it loads (good is under 200 ms)</span></div>
+<div class="kpi"><b>0.02</b><span>CLS, passes (limit 0.1)</span></div>
+</div>
+<div class="plate" id="plate"></div>
+<div class="key"><span><i style="background:var(--ttfb)"></i>Server response (TTFB)</span><span><i style="background:var(--del)"></i>Load delay</span><span><i style="background:var(--load)"></i>Image download</span><span><i style="background:var(--rend)"></i>Render delay</span><span>┆ 2.5 s "good" line</span></div>
+<p class="mute">How long each page takes to show its main content, split into four parts. Lighthouse 13 lab runs at 412×915 on 24 Nov 2026. The last bar is the homepage on Slow 4G with a 4× slower CPU.</p>
+</section>
+
+<section class="band" id="pages">
+<h2>Five pages, one table</h2>
+<p class="mute">These pages stand in for services, treatments, locations and contact on a shop site: the Men and Women collections, the first city landing page, and Contact Us. Unthrottled mobile at 412×915. LCP comes from Lighthouse, with a second trace in brackets. INP comes from real taps in the browser.</p>
+<div class="scroll"><table class="stack"><thead><tr><th>URL</th><th>LCP</th><th>INP</th><th>CLS</th><th>LCP element</th><th>Biggest LCP part</th><th>Top fix</th></tr></thead><tbody id="tbl"></tbody></table></div>
+<p>Worst page: the <b>homepage</b>. Its Lighthouse performance score is <b>85</b> unthrottled and <b>29</b> on Slow 4G + 4× CPU. The other four pages score 99, 99, 100 and 100 unthrottled.</p>
+</section>
+
+<section class="band" id="fixes">
+<h2>Three fixes that help every page at once</h2>
+<div class="fix"><h3>1. Serve the HTML from Cloudflare's cache, not from the server</h3>
+<p>The site is behind Cloudflare, but every page reply says <code>cf-cache-status: DYNAMIC</code>. That means Cloudflare passes each visit through to the hosting server. LiteSpeed's cache does hit (<code>x-litespeed-cache: hit</code>), but the first byte still arrives after 0.4–2.2 s, and that wait is the largest part of LCP on every page. Turn on Cloudflare APO for WordPress, or add a Cache Rule that caches HTML ("Cache Everything"). Bypass the cache for <code>/cart/</code>, <code>/checkout/</code>, <code>/my-account/</code> and for visitors with the <code>wordpress_logged_in_*</code> or <code>woocommerce_items_in_cart</code> cookies, and purge on publish.</p></div>
+<div class="fix"><h3>2. Stop CSS and fonts from holding up the first paint</h3>
+<p>Every page waits for 49 head files (714 KB) before it draws. The biggest are the theme's <code>style.css</code> (338 KB, which Lighthouse estimates costs 2.3 s on a budget phone) and <code>woocommerce.css</code> (126 KB). Google Fonts loads all 18 weights of Poppins and of Roboto plus Roboto Slab, with <code>display=auto</code>. In LiteSpeed Cache, turn on Generate UCSS + Load CSS Asynchronously (critical CSS inline). Self-host only the 2–3 font weights actually used, with <code>font-display: swap</code>. In Elementor, turn off loading Google Fonts and Font Awesome if they aren't used. Don't load <code>dashicons.min.css</code> for logged-out visitors.</p></div>
+<div class="fix"><h3>3. Load plugin scripts only where needed, and delay tracking until the first tap</h3>
+<p>Every page loads Google "Sign in with Google" (102 KB, from Site Kit), jQuery UI datepicker and progressbar, both Select2 and SelectWoo, single-product and variation scripts, and Contact Form 7. On a budget phone that adds up to 2.15 s of main-thread blocking (TBT). Use Asset CleanUp or Perfmatters to unload them where they're unused. Turn off Sign in with Google unless customers rely on it. Use LiteSpeed's "Delay JS" for gtag, Jetpack Stats, Cloudflare Insights and WiserReview. Also serve correctly sized images: Lighthouse finds 0.4–1.5 MB of oversized images per page, mostly 800×985 product photos shown at about 500 px wide.</p></div>
+</section>
+
+<section class="band" id="budget">
+<h2>Budget Android user (Slow 4G, 4× CPU)</h2>
+<p><b>LCP fails:</b> 7.6 s, three times the 2.5 s limit. The LCP parts are TTFB 1.35 s, load delay 0.10 s, image download 3.13 s and render delay 3.06 s. <b>INP</b> is 48 ms if you wait for the page to finish, but <b>296 ms</b> if you tap while it loads (238 ms of that is waiting for a busy main thread). That rates "needs improvement". <b>CLS</b> is 0.02 and passes. Total Blocking Time is 2,150 ms across 20 long tasks.</p>
+<p><b>What blocks the main thread:</b> Elementor's carousel code (<code>image-carousel.min.js</code>, a single 626 ms task) and Swiper (<code>swiper.min.js</code>, 3.4 s of CPU). Swiper also forces layout recalculations worth about 0.6 s. Add jQuery (1.05 s), and 4.9 s of style and layout work driven by the very large CSS. Gtag, Sign in with Google and Cloudflare Insights add smaller tasks. The page only finishes loading after 27 s.</p>
+<p><b>What it means:</b> a shopper in a Tier 2 city like Patna or Surat, on a ₹8–10k phone with patchy 4G, stares at a white screen for about 7.5 s. Then the carousels keep the phone busy for another 10 s, so taps on the menu or "Buy Now" feel sluggish. Many of these visitors come from Google or ads, and some will press back before the page appears.</p>
+</section>
+
+<section class="band" id="blocking">
+<h2>What loads before the first image appears (homepage)</h2>
+<p>112 CSS and JS requests (1.34 MB) start before first paint at 2.26 s. Chrome's own flags: <b>49 render-blocking</b> in the head (714 KB), 39 parser-blocking in the body (352 KB), gtag "potentially blocking" (151 KB) and 23 non-blocking.</p>
+<div class="scroll"><table class="stack"><thead><tr><th>Source</th><th>Files</th><th>Notable</th></tr></thead><tbody>
+<tr><td>Theme (Ecomus)</td><td class="n">7</td><td><code>style.css</code> 338 KB and <code>woocommerce.css</code> 126 KB are blocking. <code>drift</code>, <code>notify</code> and <code>jquery.countdown</code> also load on the homepage.</td></tr>
+<tr><td>Elementor + Pro</td><td class="n">29</td><td>Swiper JS 38 KB blocking in the head. Font Awesome ×3, eicons, 10 small widget CSS files, frontend JS.</td></tr>
+<tr><td>WooCommerce</td><td class="n">16</td><td>select2 <i>and</i> selectWoo (20 KB each), photoswipe, single-product and variation scripts on the homepage.</td></tr>
+<tr><td>Other plugins</td><td class="n">27</td><td>Ecomus Addons (11 files), YITH Add-ons (CSS + 12 KB icon font CSS + JS), Customer Reviews for WooCommerce, Contact Form 7, Jetpack, Smart Coupons, Joinchat (WhatsApp), Site Kit, Google Listings &amp; Ads.</td></tr>
+<tr><td>WordPress core</td><td class="n">14</td><td>jQuery + Migrate, underscore, wp-util, dashicons 35 KB, jQuery UI datepicker + progressbar, emoji script.</td></tr>
+<tr><td>Third-party</td><td class="n">7</td><td>Google Tag (gtag) 151 KB, Sign in with Google 102 KB, Google Fonts ×2 (blocking), Cloudflare Insights, Jetpack Stats. WiserReview loads after first paint.</td></tr>
+</tbody></table></div>
+<p><b>Console:</b> no JavaScript errors from the site itself. The only error was a <code>pixel.wp.com</code> stats beacon that the test machine's network blocked, so it isn't a site fault. There is a <code>JQMIGRATE</code> log, which means legacy jQuery Migrate is still loaded.</p>
+<p><b>Ask the developer to defer or remove first:</b> 1) <code>themes/ecomus/style.css</code> (critical CSS, load the rest async); 2) the two <code>fonts.googleapis.com</code> Poppins/Roboto requests (self-host 2–3 weights); 3) <code>accounts.google.com/gsi/client</code> + Site Kit's <code>sign-in-with-google.js</code> (remove).</p>
+</section>
+
+<section class="band" id="layout">
+<h2>Layout shift and the main buttons</h2>
+<p>CLS is 0.02, which passes. There are three small shifts at about 3 s. The header logo link grows from 14 to 23 px tall (0.0001). The Elementor image carousel at the bottom of the first screen expands its slides from 2×2 px placeholders to 197×90 and 167×90 when Swiper starts, and its arrows and section collapse (0.016 + 0.004). The cause is carousel images that have no reserved size until JavaScript runs: 90 of 124 images lack width/height attributes. Fonts, banners and the WhatsApp widget caused no shifts.</p>
+<p>A shop has no appointment button. Its main calls to action are the two <b>Buy Now</b> buttons (Men, Women). Both are fully visible in the first 412×915 screen and nothing covers them. The floating WhatsApp contact button is visible bottom-left, but it overlaps the customer-review images, not the buttons. There is about 110 px of empty white space between the header and the category tiles, which pushes the content down.</p>
+</section>
+
+<section class="band" id="method">
+<h2>Method and limits</h2>
+<p class="mute">These are lab tests, not field data from real visitors. They were run from a cloud machine near Cloudflare's Virginia (IAD) location, so server times from inside India may be shorter. Tools: Chromium with Playwright and the DevTools Protocol for traces, real taps for INP, the network log, the console and screenshots, plus Lighthouse 13, whose "insights" use the same engine as the DevTools Performance panel. "Slow 4G" is 150 ms latency, about 1.4 Mbps down and 4× CPU slowdown. TTFB varied between runs (0.4–2.6 s), so repeat the tests after the fixes, and check Search Console's Core Web Vitals report for real-user data.</p>
+</section>
+
+<script>{
+const P=[
+ {u:'/',l:'Homepage',parts:[2558,51,103,543],lcp:'3.3 s (2.3)',inp:'48 ms',cls:'0.02',el:'"Watches for Women" tile image (premium-watch-for-womens.webp)',big:'TTFB 2.56 s',fix:'Edge-cache the HTML; async theme CSS'},
+ {u:'/first-copy-watches-for-men/',l:'Men collection',parts:[1131,108,91,382],lcp:'1.7 s (2.3)',inp:'48 ms',cls:'0',el:'First product photo (Omega Seamaster 007)',big:'TTFB 1.13 s',fix:'Edge-cache the HTML; resize product photos'},
+ {u:'/first-copy-watches-for-women-ladies/',l:'Women collection',parts:[1115,20,145,287],lcp:'1.6 s (1.5)',inp:'48 ms',cls:'0',el:'First product photo (Michael Kors)',big:'TTFB 1.12 s',fix:'Edge-cache the HTML; resize product photos'},
+ {u:'/first-copy-watches-in-ahmedabad/',l:'Ahmedabad page',parts:[684,0,0,531],lcp:'1.2 s (2.1)',inp:'40 ms',cls:'0',el:'H1 heading text',big:'TTFB 0.68 s (render delay 0.53 s close)',fix:'Self-host 2 font weights; async CSS'},
+ {u:'/contact-us/',l:'Contact Us',parts:[660,0,0,574],lcp:'1.2 s (2.2)',inp:'56 ms',cls:'0',el:'Address paragraph',big:'TTFB 0.66 s (render delay 0.57 s close)',fix:'Async CSS; drop unused plugin JS'}];
+const slow={l:'Homepage · budget phone',parts:[1348,103,3129,3057]};
+const max=8000,cols=['--ttfb','--del','--load','--rend'];
+const bar=p=>`<div class="row"><div class="lab">${p.l}</div><div class="track"><div class="bar">${p.parts.map((d,i)=>`<i style="width:${d/max*100}%;background:var(${cols[i]})" title="${d} ms"></i>`).join('')}</div><span class="goal" style="left:${2500/max*100}%"></span></div><div class="v">${(p.parts.reduce((a,b)=>a+b,0)/1000).toFixed(1)} s</div></div>`;
+document.getElementById('plate').innerHTML=P.map(bar).join('')+bar(slow);
+document.getElementById('tbl').innerHTML=P.map(p=>`<tr><td><a href="https://premiumwatchstore.in${p.u}">${p.u}</a></td><td class="n">${p.lcp}</td><td class="n">${p.inp}</td><td class="n">${p.cls}</td><td>${p.el}</td><td>${p.big}</td><td>${p.fix}</td></tr>`).join('');
+}</script>
+</body></html>
